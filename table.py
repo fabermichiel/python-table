@@ -127,8 +127,10 @@ class Table(object):
     def __str__(self):
         return str(self.matrix)
 
-    def __unicode__(self):
-        return unicode(self.matrix)
+    # Unicode is unresolved
+    # def __unicode__(self):
+    #    return unicode(self.matrix)
+
 
 def readTableFromDelimited(f, separator="\t"):
     """

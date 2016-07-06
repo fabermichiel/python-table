@@ -19,7 +19,7 @@
 # WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import numpy
+import numpy as np
 import csv
 
 __version__ = "0.0.4"
@@ -40,7 +40,7 @@ class Table(object):
         self.columnNames = list(columnNames)
         self.rowIndices = dict([(n, i) for i, n in enumerate(self.rowNames)])
         self.columnIndices = dict([(n, i) for i, n in enumerate(self.columnNames)])
-        self.matrix = numpy.zeros((len(rowNames), len(columnNames)))
+        self.matrix = np.zeros((len(rowNames), len(columnNames)))
         if matrix is not None:
             self.matrix[:] = matrix
 
@@ -72,6 +72,66 @@ class Table(object):
             row["_"] = rowName
             rows.append(row)
         return rows
+
+    def addRow(self, i=None, name=None, values=None):
+        """
+        :param i: Indez of where the row should be inserted in the table. Thus insert after specified (row)number Default is None (append to table).
+        :param name: Name of tablerow. Default is None. This implies rowindex becomes rowname
+        :param values: Values for the inserted row. Default is None
+        :return: i
+        """
+
+        if i is None:
+            i = len(self.rowNames)
+
+        if name is None:
+            name = i
+
+        newRow = np.zeros((1, len(self.columnNames)))
+        if values is None:
+            newRow[:] = None
+        else:
+            newRow[:] = values
+
+        self.rowNames.append(name)
+        self.rowIndices = dict([(n, i) for i, n in enumerate(self.rowNames)])
+
+        before = self.matrix[:i,]
+        after = self.matrix[i:,]
+        newMatrix = np.vstack((before, newRow))
+        self.matrix = np.vstack((newMatrix, after))
+        return i
+
+    def addColumn(self, i=None, name=None, values=None):
+        """
+        :param i: Index of where the column should be inserted in the table. This inserts after specified (column)number. Default is None (append to table).
+        :param name: Name of tablecolumn. Default is None. This implies columnindex becomes columnname
+        :param values: Values for the inserted column. Default is None
+        :return: i
+        """
+
+        if i is None:
+            i = len(self.columnNames)
+
+        if name is None:
+            name = i
+
+        self.columnNames.append(name)
+        self.columnIndices = dict([(n, i) for i, n in enumerate(self.columnNames)])
+
+        newColumn = np.zeros((len(self.rowNames), 1))
+        if values is None:
+            newColumn[:] = None
+        else:
+            newColumn[:] = np.array([values]).T
+
+
+        before = self.matrix[:, :i]
+        after = self.matrix[:, i:]
+        newMatrix = np.hstack((before, newColumn))
+        self.matrix = np.hstack((newMatrix, after))
+        return i
+
 
     def __getRowIndex(self, rowName):
         if rowName is None:
@@ -130,6 +190,8 @@ class Table(object):
     # Unicode is unresolved
     # def __unicode__(self):
     #    return unicode(self.matrix)
+
+
 
 
 def readTableFromDelimited(f, separator="\t"):
